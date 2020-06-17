@@ -1,0 +1,9 @@
+ cd /home/wbiraki/lec/software/project ; /usr/lib/jvm/java-11-openjdk-amd64/bin/java -Dfile.encoding=UTF-8 -cp /home/wbiraki/.config/Code/User/workspaceStorage/31bdc6a0fd3276b977ff536dc006ef78/redhat.java/jdt_ws/project_f6bd90bb/bin myhttp.ZakoServerTest 
+
+
+ GET
+GET
+false
+false
+GET
+false
