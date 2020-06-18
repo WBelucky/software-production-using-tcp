@@ -14,9 +14,8 @@ public class HttpRequest {
   public final HttpHeader header;
 
   public HttpRequest(final InputStream inStream) {
-    try (
+    try {
       final var input = new BufferedReader(new InputStreamReader(inStream, "UTF-8"));
-    ) {
       this.header = new HttpHeader(this.readHeader(input));
       this.bodyText = this.readBody(input);
     } catch (IOException e) {
@@ -30,9 +29,11 @@ public class HttpRequest {
     final var header = new StringBuilder();
 
     while (line != null && !line.isEmpty()) {
+    System.out.println(line);
       header.append(line + crlf);
       line = input.readLine();
     }
+    System.out.println("end");
     return header.toString();
   }
 

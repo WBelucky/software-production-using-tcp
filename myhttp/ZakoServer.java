@@ -41,8 +41,14 @@ public class ZakoServer {
 
   private void process(final ServerSocket s) throws IOException {
     final var socket = s.accept();
-    this.service.execute(() -> {
-      try (final var in = socket.getInputStream(); final var out = socket.getOutputStream();) {
+    // this.service.execute(() -> {
+      try (
+        final var in = socket.getInputStream();
+        final var outputStream = socket.getOutputStream();
+      ) {
+
+        System.out.println("first");
+        System.out.println(socket.isClosed()); 
         final var req = new HttpRequest(in);
 
         final var header = req.header;
@@ -50,24 +56,31 @@ public class ZakoServer {
         final var path = header.path;
         // System.out.println(header.text);
 
+
+        System.out.println("before-if");
+        System.out.println(socket.isClosed()); 
         if ("GET".equals(method)) {
           System.out.println("kita");
           // setFileで指定したところをstaticファイルにする
           final var file = new File("static/", header.path);
           if (file.exists() && file.isFile()) {
-            new HttpResponse(out).sendFile(file);
-            System.out.println("aru");
+            new HttpResponse(outputStream).sendFile(file);
             return;
           }
-          System.out.println("nai");
         }
+        System.out.println("after-if");
+        System.out.println(socket.isClosed()); 
         final var task = this.routeTasks.stream().filter(t -> t.method.equals(method) && t.path.equals(path))
-            .findFirst();
+          .findFirst();
         if (task.isEmpty()) {
           // TODO: Not Found
           return;
         }
-        task.get().procedure.accept(new Context(req, new HttpResponse(out)));
+        System.out.println("before");
+        System.out.println(socket.isClosed()); 
+        task.get().procedure.accept(new Context(req, new HttpResponse(outputStream)));
+        System.out.println("after");
+        System.out.println(socket.isClosed()); 
 
       } catch (IOException e) {
         throw new UncheckedIOException(e);
@@ -78,6 +91,6 @@ public class ZakoServer {
           e.printStackTrace(System.err);
         }
       }
-    });
+    // });
   }
 }

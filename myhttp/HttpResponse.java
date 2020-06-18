@@ -14,7 +14,7 @@ public class HttpResponse {
   private Optional<String> body = Optional.empty();
   private final OutputStream out;
 
-  public HttpResponse(final OutputStream out) {
+  public HttpResponse(OutputStream out) {
     this.out = out;
   }
   public HttpResponse status(int status) {
@@ -55,7 +55,7 @@ public class HttpResponse {
 
     if (this.body.isPresent()) {
       IOUtil.println(this.out,"");
-      IOUtil.println(this.out, body.get());
+      IOUtil.print(this.out, body.get());
     }
   }
 }
