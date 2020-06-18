@@ -41,26 +41,17 @@ public class ZakoServer {
 
   private void process(final ServerSocket s) throws IOException {
     final var socket = s.accept();
-    // this.service.execute(() -> {
+    this.service.execute(() -> {
       try (
         final var in = socket.getInputStream();
         final var outputStream = socket.getOutputStream();
       ) {
-
-        System.out.println("first");
-        System.out.println(socket.isClosed()); 
         final var req = new HttpRequest(in);
-
         final var header = req.header;
         final var method = header.method;
         final var path = header.path;
-        // System.out.println(header.text);
 
-
-        System.out.println("before-if");
-        System.out.println(socket.isClosed()); 
         if ("GET".equals(method)) {
-          System.out.println("kita");
           // setFileで指定したところをstaticファイルにする
           final var file = new File("static/", header.path);
           if (file.exists() && file.isFile()) {
@@ -68,19 +59,15 @@ public class ZakoServer {
             return;
           }
         }
-        System.out.println("after-if");
-        System.out.println(socket.isClosed()); 
         final var task = this.routeTasks.stream().filter(t -> t.method.equals(method) && t.path.equals(path))
           .findFirst();
         if (task.isEmpty()) {
           // TODO: Not Found
           return;
         }
-        System.out.println("before");
-        System.out.println(socket.isClosed()); 
+
+        // application of function of each route
         task.get().procedure.accept(new Context(req, new HttpResponse(outputStream)));
-        System.out.println("after");
-        System.out.println(socket.isClosed()); 
 
       } catch (IOException e) {
         throw new UncheckedIOException(e);
@@ -91,6 +78,6 @@ public class ZakoServer {
           e.printStackTrace(System.err);
         }
       }
-    // });
+    });
   }
 }
