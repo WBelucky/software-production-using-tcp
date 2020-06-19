@@ -9,5 +9,5 @@ What I made:
 ```bash
 gradle run
 ```
-and Access http://localhost:8080
+and Access http://localhost:8080 on Your Browser(only examined with Chrome).
 
