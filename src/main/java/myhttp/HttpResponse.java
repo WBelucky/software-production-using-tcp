@@ -1,7 +1,6 @@
 package myhttp;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.util.HashMap;
@@ -25,37 +24,46 @@ public class HttpResponse {
     this.headers.put(propName, value.toString());
     return this;
   }
-  public void sendFile(File file) throws IOException {
+  public void sendFile(File file) {
     final var fileName = file.getName();
     final var fileExtension = fileName.substring(fileName.lastIndexOf('.') + 1);
-
     // TODO: use fileExtension
-
     final var first =  "HTTP/1.1 " + String.valueOf(this.status) + " OK"; // TODO:
-    IOUtil.println(this.out, first);
     this.header("Content-Type", "text/html");
-    this.headers.forEach((k, v) -> {
-        final var line = k + ": " + v;
-        IOUtil.println(this.out, line);
-    });
-    IOUtil.println(this.out, "");
-    Files.copy(file.toPath(), out);
+
+    try {
+      IOUtil.println(this.out, first);
+      this.headers.forEach((k, v) -> {
+          final var line = k + ": " + v;
+          IOUtil.println(this.out, line);
+      });
+      IOUtil.println(this.out, "");
+      Files.copy(file.toPath(), out);
+    } catch (Exception e) {
+      System.err.println("failed to send");
+      e.printStackTrace(System.err);
+    }
   }
   public HttpResponse body(String body) {
     this.body = Optional.of(body);
     return this;
   }
-  public void send() throws IOException {
-    final var first = "HTTP/1.1 " + String.valueOf(this.status) + " OK"; // TODO:
-    IOUtil.println(this.out, first);
-    this.headers.forEach((k, v) -> {
-        final var line = k + ": " + v;
-        IOUtil.println(this.out, line);
-    });
+  public void send() {
+    try {
+      final var first = "HTTP/1.1 " + String.valueOf(this.status) + " OK"; // TODO:
+      IOUtil.println(this.out, first);
+      this.headers.forEach((k, v) -> {
+          final var line = k + ": " + v;
+          IOUtil.println(this.out, line);
+      });
 
-    if (this.body.isPresent()) {
-      IOUtil.println(this.out,"");
-      IOUtil.print(this.out, body.get());
+      if (this.body.isPresent()) {
+        IOUtil.println(this.out,"");
+        IOUtil.print(this.out, body.get());
+      }
+    } catch (Exception e) {
+      System.err.println("failed to send");
+      e.printStackTrace(System.err);
     }
   }
 }
