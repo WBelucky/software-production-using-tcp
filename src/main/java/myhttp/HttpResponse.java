@@ -7,8 +7,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import javax.swing.text.AbstractDocument.Content;
-
 public class HttpResponse {
   private Status status = Status.Ok;
   private final Map<String, String> headers = new HashMap<>();
@@ -30,6 +28,7 @@ public class HttpResponse {
   }
   public HttpResponse contentType(ContentType contentType) {
     this.headers.put("Content-Type", contentType.toString());
+    return this;
   }
 
   public void sendFile(File file) {

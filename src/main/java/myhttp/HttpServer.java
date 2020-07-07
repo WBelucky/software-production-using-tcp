@@ -61,9 +61,10 @@ public class HttpServer {
           .findFirst();
         if (task.isEmpty()) {
           new HttpResponse(outputStream)
-            .header("ContentType", "text/plain")
+            .contentType(ContentType.TextPlain)
             .status(Status.NotFound)
-            .body("404 Not Found");
+            .body("404 Not Found")
+            .send();
           return;
         }
 
