@@ -19,7 +19,7 @@ public class HttpServerTest {
       final var echoBody = ctx.req.bodyText.get();
       ctx.res.body("echo: " + echoBody).send();
     });
-    
+
     s.get("/hoge", ctx -> {
       ctx.res.body("hoge").send();
     });

@@ -33,10 +33,9 @@ public class HttpServer {
     this.routeTasks.add(new RouteTask("POST", path, procedure));
     return this;
   }
-
-  public HttpServer staticFilePath(final String path) {
-    return this;
-  }
+  // public HttpServer staticFilePath(final String path) {
+  //   return this;
+  // }
 
   private void process(final ServerSocket s) throws IOException {
     final var socket = s.accept();
@@ -61,7 +60,10 @@ public class HttpServer {
         final var task = this.routeTasks.stream().filter(t -> t.method.equals(method) && t.path.equals(path))
           .findFirst();
         if (task.isEmpty()) {
-          // TODO: Not Found
+          new HttpResponse(outputStream)
+            .header("ContentType", "text/plain")
+            .status(Status.NotFound)
+            .body("404 Not Found");
           return;
         }
 

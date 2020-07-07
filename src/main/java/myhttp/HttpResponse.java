@@ -7,8 +7,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+import javax.swing.text.AbstractDocument.Content;
+
 public class HttpResponse {
-  private int status = 200;
+  private Status status = Status.Ok;
   private final Map<String, String> headers = new HashMap<>();
   private Optional<String> body = Optional.empty();
   private final OutputStream out;
@@ -16,26 +18,31 @@ public class HttpResponse {
   public HttpResponse(OutputStream out) {
     this.out = out;
   }
-  public HttpResponse status(int status) {
+
+  public HttpResponse status(Status status) {
     this.status = status;
     return this;
   }
+
   public HttpResponse header(String propName, Object value) {
     this.headers.put(propName, value.toString());
     return this;
   }
+  public HttpResponse contentType(ContentType contentType) {
+    this.headers.put("Content-Type", contentType.toString());
+  }
+
   public void sendFile(File file) {
     final var fileName = file.getName();
     final var fileExtension = fileName.substring(fileName.lastIndexOf('.') + 1);
-    // TODO: use fileExtension
-    final var first =  "HTTP/1.1 " + String.valueOf(this.status) + " OK"; // TODO:
-    this.header("Content-Type", "text/html");
+    final var first = "HTTP/1.1 " + String.valueOf(this.status);
+    this.contentType(ContentType.toContentType(fileExtension));
 
     try {
       IOUtil.println(this.out, first);
       this.headers.forEach((k, v) -> {
-          final var line = k + ": " + v;
-          IOUtil.println(this.out, line);
+        final var line = k + ": " + v;
+        IOUtil.println(this.out, line);
       });
       IOUtil.println(this.out, "");
       Files.copy(file.toPath(), out);
@@ -44,21 +51,23 @@ public class HttpResponse {
       e.printStackTrace(System.err);
     }
   }
+
   public HttpResponse body(String body) {
     this.body = Optional.of(body);
     return this;
   }
+
   public void send() {
     try {
-      final var first = "HTTP/1.1 " + String.valueOf(this.status) + " OK"; // TODO:
+      final var first = "HTTP/1.1 " + String.valueOf(this.status);
       IOUtil.println(this.out, first);
       this.headers.forEach((k, v) -> {
-          final var line = k + ": " + v;
-          IOUtil.println(this.out, line);
+        final var line = k + ": " + v;
+        IOUtil.println(this.out, line);
       });
 
       if (this.body.isPresent()) {
-        IOUtil.println(this.out,"");
+        IOUtil.println(this.out, "");
         IOUtil.print(this.out, body.get());
       }
     } catch (Exception e) {
