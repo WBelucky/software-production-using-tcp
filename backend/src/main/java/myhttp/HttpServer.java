@@ -16,7 +16,10 @@ public class HttpServer {
 
   public void listenAndServe(final int port) {
     try (final var s = new ServerSocket(port)) {
+      int i = 0;
       while (true) {
+        i ++;
+        System.out.println(i);
         this.process(s);
       }
     } catch (Exception e) {
@@ -39,8 +42,11 @@ public class HttpServer {
 
   private void process(final ServerSocket s) throws IOException {
     final var socket = s.accept();
+    System.out.println("thread cnt");
+    System.out.println(Thread.activeCount());
     this.service.execute(() -> {
       try (
+        // ここも閉じないでおく?
         final var in = socket.getInputStream();
         final var outputStream = socket.getOutputStream();
       ) {
@@ -75,6 +81,7 @@ public class HttpServer {
         throw new UncheckedIOException(e);
       } finally {
         try {
+          // ここで閉じずに, sendFileやsendの中で閉じてもらう??
           socket.close();
         } catch (IOException e) {
           e.printStackTrace(System.err);
