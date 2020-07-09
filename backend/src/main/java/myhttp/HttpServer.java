@@ -45,11 +45,11 @@ public class HttpServer {
     System.out.println("thread cnt");
     System.out.println(Thread.activeCount());
     this.service.execute(() -> {
-      try (
+      try /*(
         // ここも閉じないでおく?
+      )*/ {
         final var in = socket.getInputStream();
-        final var outputStream = socket.getOutputStream();
-      ) {
+        // outputSteamはのときに閉じるようにする for long polling
         final var req = new HttpRequest(in);
         final var header = req.header;
         final var method = header.method;
@@ -59,14 +59,14 @@ public class HttpServer {
           // setFileで指定したところをstaticファイルにする
           final var file = new File("static/", header.path);
           if (file.exists() && file.isFile()) {
-            new HttpResponse(outputStream).sendFile(file);
+            new HttpResponse(socket).sendFile(file);
             return;
           }
         }
         final var task = this.routeTasks.stream().filter(t -> t.method.equals(method) && t.path.equals(path))
           .findFirst();
         if (task.isEmpty()) {
-          new HttpResponse(outputStream)
+          new HttpResponse(socket)
             .contentType(ContentType.TextPlain)
             .status(Status.NotFound)
             .body("404 Not Found")
@@ -75,17 +75,12 @@ public class HttpServer {
         }
 
         // application of function of each route
-        task.get().procedure.accept(new Context(req, new HttpResponse(outputStream)));
+        task.get().procedure.accept(new Context(req, new HttpResponse(socket)));
 
       } catch (IOException e) {
         throw new UncheckedIOException(e);
       } finally {
-        try {
-          // ここで閉じずに, sendFileやsendの中で閉じてもらう??
-          socket.close();
-        } catch (IOException e) {
-          e.printStackTrace(System.err);
-        }
+        System.out.println("thread end");
       }
     });
   }

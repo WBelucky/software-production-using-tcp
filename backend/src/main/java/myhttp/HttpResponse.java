@@ -1,7 +1,8 @@
 package myhttp;
 
 import java.io.File;
-import java.io.OutputStream;
+import java.io.IOException;
+import java.net.Socket;
 import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Map;
@@ -11,67 +12,81 @@ public class HttpResponse {
   private Status status = Status.Ok;
   private final Map<String, String> headers = new HashMap<>();
   private Optional<String> body = Optional.empty();
-  private final OutputStream out;
+  private final Socket socket;
 
-  public HttpResponse(OutputStream out) {
-    this.out = out;
+  public HttpResponse(Socket socket) {
+    this.socket = socket;
   }
 
-  public HttpResponse status(Status status) {
+  public HttpResponse status(final Status status) {
     this.status = status;
     return this;
   }
 
-  public HttpResponse header(String propName, Object value) {
+  public HttpResponse header(final String propName, final Object value) {
     this.headers.put(propName, value.toString());
     return this;
   }
-  public HttpResponse contentType(ContentType contentType) {
+
+  public HttpResponse contentType(final ContentType contentType) {
     this.headers.put("Content-Type", contentType.toString());
     return this;
   }
 
-  public void sendFile(File file) {
+  public void sendFile(final File file) {
     final var fileName = file.getName();
     final var fileExtension = fileName.substring(fileName.lastIndexOf('.') + 1);
     final var first = "HTTP/1.1 " + String.valueOf(this.status);
     this.contentType(ContentType.toContentType(fileExtension));
 
-    try {
-      IOUtil.println(this.out, first);
+    try (final var out = this.socket.getOutputStream();) {
+      IOUtil.println(out, first);
       this.headers.forEach((k, v) -> {
         final var line = k + ": " + v;
-        IOUtil.println(this.out, line);
+        IOUtil.println(out, line);
       });
-      IOUtil.println(this.out, "");
+      IOUtil.println(out, "");
       Files.copy(file.toPath(), out);
-    } catch (Exception e) {
+    } catch (final Exception e) {
       System.err.println("failed to send");
       e.printStackTrace(System.err);
+    } finally {
+      try {
+        this.socket.close();
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
     }
   }
 
-  public HttpResponse body(String body) {
+  public HttpResponse body(final String body) {
     this.body = Optional.of(body);
     return this;
   }
 
   public void send() {
-    try {
+    try (final var out = this.socket.getOutputStream();) {
       final var first = "HTTP/1.1 " + String.valueOf(this.status);
-      IOUtil.println(this.out, first);
+      IOUtil.println(out, first);
       this.headers.forEach((k, v) -> {
         final var line = k + ": " + v;
-        IOUtil.println(this.out, line);
+        IOUtil.println(out, line);
       });
 
       if (this.body.isPresent()) {
-        IOUtil.println(this.out, "");
-        IOUtil.print(this.out, body.get());
+        IOUtil.println(out, "");
+        IOUtil.print(out, body.get());
       }
-    } catch (Exception e) {
+    } catch (final Exception e) {
       System.err.println("failed to send");
       e.printStackTrace(System.err);
+    } finally {
+      try {
+        this.socket.close();
+      } catch (IOException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
     }
   }
 }
