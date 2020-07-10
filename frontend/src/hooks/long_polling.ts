@@ -22,22 +22,20 @@ class PollingChannel {
           // 接続タイムアウトエラー
           // 接続が長時間保留されていて、リモートサーバやプロキシがそれを閉じたときに発生する場合があります
           // 再接続しましょう
-          continue;
         } else if (response.status !== 200) {
           // エラーを表示
           console.error(response.statusText);
           subscriber.error(response.statusText);
           // 1秒後に再接続します
           await new Promise((resolve) => setTimeout(resolve, 1000));
-          continue;
         } else {
           // メッセージを取得しました
           const message = (await response.json()) as Message;
           this.id = message.id;
           subscriber.next(message);
           console.log("ok");
-          continue;
         }
+        continue;
       }
     })();
   });

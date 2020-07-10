@@ -7,7 +7,7 @@ What I made:
 
 ## How to run
 ```bash
-gradle run
+./build.sh
 ```
 and Access http://localhost:8080 on Your Browser(only examined with Chrome).
 
