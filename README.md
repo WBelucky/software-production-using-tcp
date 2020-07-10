@@ -1,5 +1,7 @@
 # Software Production using TCP written in Java
 
+Please see this in GitHub. https://github.com/WBelucky/software-production-using-tcp
+
 ## TL;DR;
 What I made:
 * HTTP "like" Server Framework using Socket communication of Java.
