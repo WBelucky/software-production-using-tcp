@@ -1,2 +1,2 @@
 #!/bin/bash
-cd frontend && npm run build && cp -r dist/* ../backend/static && cd ../backend && gradle run
+cd frontend && npm i && npm run build && cd ../backend && mkdir -p static && cp -r ../frontend/dist/* static && gradle run
