@@ -86,9 +86,9 @@ public class Room {
             final var num1 = setNum1.get();
             final var num2 = setNum2.get();
             p1.setNumeron(num1.content);
-            p1.sendMessage("set_number", num1.content);
+            p1.sendMessage("game_start", num1.content);
             p2.setNumeron(num2.content);
-            p2.sendMessage("set_number", num2.content);
+            p2.sendMessage("game_start", num2.content);
           } catch (InterruptedException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -123,7 +123,7 @@ public class Room {
         }
         final var attackResult = ans1.content + "," + Integer.toString(res1.first) + "," + Integer.toString(res1.second);
         pAttack.sendMessage("feedback", attackResult);
-        pTarget.sendMessage("feedback", attackResult);
+        pTarget.sendMessage("attacked", attackResult);
         turn++;
       }
     });
