@@ -168,9 +168,11 @@ public class Player {
   }
 
   public Message waitInputOfType(final String type) {
+    System.out.println("start type waiting " + type);
     while (true) {
       final var m = this.waitInput();
       System.out.println("type " + m.type);
+      System.out.println("expected " + type);
       if (type.equals(m.type)) {
         System.out.println("ok get2");
         return m;

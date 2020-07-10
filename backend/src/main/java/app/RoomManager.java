@@ -17,15 +17,16 @@ public class RoomManager {
 
   private Room createRoom() {
     final var room = new Room();
+    System.out.println("room created");
     service.execute(() -> {
       try {
         room.process();
       } catch (Exception e) {
         e.printStackTrace();
       } finally {
-        for (final var userId: room.getPlayerIds()) {
-          idToRoom.remove(userId);
-        }
+        // for (final var userId: room.getPlayerIds()) {
+        //   idToRoom.remove(userId);
+        // }
       }
     });
     return room;
