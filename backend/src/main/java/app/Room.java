@@ -64,7 +64,7 @@ public class Room {
 
   // empty means timeout
   private Message waitMessage() {
-    while (queue.isEmpty()) {
+    while (true) {
         // 定期的に10分以上応答がなかったらプロセスを終了する.
       if (rand.nextInt(50) == 0) {
         final var cur = System.currentTimeMillis();
@@ -74,12 +74,15 @@ public class Room {
           throw new IllegalStateException();
         }
       }
+      if (queue.isEmpty()) {
+        continue;
+      }
+      final var p = queue.poll();
+      final var ctx = p.first;
+      final var message = p.second;
+      this.idToPlayer.get(message.id).pushContext(ctx);
+      return message;
     }
-    final var p = queue.poll();
-    final var ctx = p.first;
-    final var message = p.second;
-    this.idToPlayer.get(message.id).pushContext(ctx);
-    return message;
   }
 
   private Message waitMessageOfType(final String type) {
@@ -113,6 +116,13 @@ public class Room {
     try {
       final var j = this.mapper.writeValueAsString(new Message(p.id, type, content));
       c.get().res.status(Status.Ok).body(j).send();
+      c = p.getContext();
+      final var release = this.mapper.writeValueAsString(new Message(p.id, "release", ""));
+      while (!c.isEmpty()) {
+        System.out.println("release");
+        c.get().res.status(Status.Ok).body(release).send();
+        c = p.getContext();
+      }
     } catch (JsonProcessingException e) {
       // TODO Auto-generated catch block
       e.printStackTrace();
@@ -127,7 +137,7 @@ public class Room {
     this.sendMessage(p1, "join", this.id);
 
     final var j2 = waitMessageWithFilter((Message mm) ->
-      !mm.id.equals(p1.id) && mm.type.equals("join"));
+      !(mm.id.equals(p1.id)) && mm.type.equals("join"));
     final var p2 = this.idToPlayer.get(j2.id);
     p2.name = Optional.of(j2.content);
     this.sendMessage(p2, "match", p1.name.get());

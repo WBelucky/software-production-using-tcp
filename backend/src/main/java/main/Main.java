@@ -9,6 +9,8 @@ import java.util.concurrent.ArrayBlockingQueue;
 import myhttp.ContentType;
 import myhttp.HttpResponse;
 import myhttp.HttpServer;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import app.Message;
@@ -66,6 +68,14 @@ public class Main {
       if (message.id.equals("none")) {
         final var id = UUID.randomUUID().toString();
         message =  new Message(id, message.type, message.content);
+        try {
+          final var j = mapper.writeValueAsString(message);
+          ctx.res.body(j).send();
+        } catch (JsonProcessingException e) {
+          // TODO Auto-generated catch block
+          e.printStackTrace();
+        }
+        return;
       }
       final var room = roomManager.getRoom(message.id);
 

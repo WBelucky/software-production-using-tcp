@@ -23,9 +23,9 @@ public class RoomManager {
       } catch (Exception e) {
         e.printStackTrace();
       } finally {
-        // for (final var userId: room.getPlayerIds()) {
-        //   idToRoom.remove(userId);
-        // }
+        for (final var userId: room.getPlayerIds()) {
+          idToRoom.remove(userId);
+        }
       }
     });
     return room;
