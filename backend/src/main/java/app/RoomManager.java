@@ -47,7 +47,12 @@ public class RoomManager {
   }
 
   public Room getRoom(final String userId) {
-    final var room = idToRoom.getOrDefault(userId, this.searchAndEnterRoom(userId));
+    final Room room;
+    if (idToRoom.containsKey(userId)) {
+      room = idToRoom.get(userId);
+    } else {
+      room = this.searchAndEnterRoom(userId);
+    }
     System.out.println("room size" + idToRoom.size());
     return room;
   }

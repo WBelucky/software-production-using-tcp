@@ -1,4 +1,4 @@
-import { Observable, Subscriber, Subject, merge } from "rxjs";
+import { Observable, Subscriber } from "rxjs";
 import { useEffect, useState, useCallback, useMemo } from "react";
 
 export type Message = { id: string; type: string; content: string };
@@ -6,12 +6,12 @@ export type Message = { id: string; type: string; content: string };
 class PollingChannel {
   private id: string | null = null;
   private end = false;
-  public subject = new Subject<Message>();
+  private channel: Message[] = [];
 
   public readonly observable = new Observable((subscriber: Subscriber<Message>) => {
     (async () => {
       while (!this.end) {
-        const message: Message = { id: this.id ?? "none", type: "resubscribe", content: "" };
+        const message: Message = this.channel.shift() ?? { id: this.id ?? "none", type: "resubscribe", content: "" };
 
         const response = await fetch("/api/game", {
           method: "POST",
@@ -32,7 +32,14 @@ class PollingChannel {
           // メッセージを取得しました
           const message = (await response.json()) as Message;
           this.id = message.id;
-          subscriber.next(message);
+          if (message.type === "wait_input") {
+            while (this.channel.length === 0) {
+              // 100msごとに確認
+              await new Promise((resolve) => setTimeout(resolve, 100));
+            }
+          } else {
+            subscriber.next(message);
+          }
           console.log("ok");
         }
         continue;
@@ -41,15 +48,8 @@ class PollingChannel {
   });
 
   public async push(type: string, content: string) {
-    console.log("pushed", type, content);
     const message: Message = { id: this.id ?? "none", type, content };
-    const res = await fetch("/api/game", {
-      method: "POST",
-      body: JSON.stringify(message), // TODO:
-    });
-    const response = (await res.json()) as Message;
-    this.id = response.id;
-    this.subject.next(response);
+    this.channel.push(message);
   }
 }
 
@@ -67,7 +67,7 @@ export const useLongPollingObservable = (
     [onChange]
   );
   useEffect(() => {
-    const subscription = merge(chan.observable, chan.subject).subscribe(handleChange);
+    const subscription = chan.observable.subscribe(handleChange);
     return () => subscription.unsubscribe();
   }, [handleChange, chan.observable, onChange]);
   const push = useCallback(
