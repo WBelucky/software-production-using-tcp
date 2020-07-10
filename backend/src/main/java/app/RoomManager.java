@@ -8,7 +8,7 @@ import java.util.concurrent.PriorityBlockingQueue;
 
 public class RoomManager {
   private final int maxPlayers = 2;
-  private final Map<Integer, Room> idToRoom = new ConcurrentHashMap<>();
+  private final Map<String, Room> idToRoom = new ConcurrentHashMap<>();
   private final PriorityBlockingQueue<Room> queue = new PriorityBlockingQueue<Room>(100,
       (final Room a, final Room b) -> {
         return a.getNumberOfPlayers() - b.getNumberOfPlayers();
@@ -19,31 +19,36 @@ public class RoomManager {
     final var room = new Room();
     service.execute(() -> {
       try {
-        while(room.process()) {}
+        room.process();
       } catch (Exception e) {
         e.printStackTrace();
+      } finally {
+        // for (final var userId: room.getPlayerIds()) {
+        //   idToRoom.remove(userId);
+        // }
       }
     });
     return room;
   }
 
-  private Room searchEnterableRoom() {
+  // 新しいルームかqueueからpopされたルームを返す.
+  private Room searchAndEnterRoom(final String userId) {
     while (!queue.isEmpty() && queue.peek().getNumberOfPlayers() >= maxPlayers) {
-      queue.poll();
+      final var r = queue.poll();
+      System.out.println("queue empty or full pop" + r.getNumberOfPlayers());
     }
-    if (queue.isEmpty()) {
-      return createRoom();
-    }
-    return queue.poll();
-  }
-
-  public Room getRoom(final int userId) {
-    final var room = idToRoom.getOrDefault(userId, this.searchEnterableRoom());
+    final var room = queue.isEmpty() ? createRoom() : queue.poll();
+    room.addPlayer(userId);
+    // queueに入れ直す
+    queue.put(room);
+    // どの部屋に入るべきかを残しておく.
     idToRoom.put(userId, room);
     return room;
   }
 
-  public void exitRoom(final int userId) {
-    idToRoom.remove(userId);
+  public Room getRoom(final String userId) {
+    final var room = idToRoom.getOrDefault(userId, this.searchAndEnterRoom(userId));
+    System.out.println("room size" + idToRoom.size());
+    return room;
   }
 }

@@ -9,7 +9,7 @@ import java.util.Optional;
 
 public class HttpRequest {
   public static final String crlf = "\r\n";
-  
+
   public final Optional<String> bodyText;
   public final HttpHeader header;
 
@@ -29,11 +29,9 @@ public class HttpRequest {
     final var header = new StringBuilder();
 
     while (line != null && !line.isEmpty()) {
-    System.out.println(line);
       header.append(line + crlf);
       line = input.readLine();
     }
-    System.out.println("end");
     return header.toString();
   }
 

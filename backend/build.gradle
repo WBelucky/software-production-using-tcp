@@ -7,6 +7,7 @@ repositories {
 
 dependencies {
     compile 'com.fasterxml.jackson.core:jackson-databind:2.3.4'
+    implementation "io.reactivex.rxjava3:rxjava:3.0.4"
 }
 
 mainClassName = 'main.Main'

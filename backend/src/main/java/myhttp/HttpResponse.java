@@ -48,7 +48,6 @@ public class HttpResponse {
       IOUtil.println(out, "");
       Files.copy(file.toPath(), out);
     } catch (final Exception e) {
-      System.err.println("failed to send");
       e.printStackTrace(System.err);
     } finally {
       try {

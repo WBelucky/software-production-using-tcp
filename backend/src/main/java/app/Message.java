@@ -1,7 +1,13 @@
 package app;
 
 public class Message {
-  public int from;
+  public String id;
   public String type;
-  public String text;
+  public String content;
+  public Message(String id, String type, String content) {
+    this.id = id;
+    this.type = type;
+    this.content = content;
+  }
+  public Message() {}
 }

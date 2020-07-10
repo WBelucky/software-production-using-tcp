@@ -3,6 +3,7 @@ package main;
 import java.io.File;
 import java.io.IOException;
 import java.util.Date;
+import java.util.UUID;
 import java.util.concurrent.ArrayBlockingQueue;
 
 import myhttp.ContentType;
@@ -10,11 +11,18 @@ import myhttp.HttpResponse;
 import myhttp.HttpServer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import app.Message;
 import app.RoomManager;
 
 class Hoge {
   public int id;
   public String name;
+
+  public Hoge(int id, String name) {
+    this.id = id;
+    this.name = name;
+  }
+  public Hoge() {}
 
   @Override
   public String toString() {
@@ -32,17 +40,40 @@ public class Main {
     final String json = "{\"id\":20, \"name\":\"HOGE\"}";
     final var queue = new ArrayBlockingQueue<HttpResponse>(100);
 
+    // json test
     final ObjectMapper mapper = new ObjectMapper();
     try {
       final Hoge hoge = mapper.readValue(json, Hoge.class);
-      System.out.println(hoge);
     } catch (final IOException e) {
       e.printStackTrace();
     }
 
+    s.post("/api/game", ctx -> {
+      final var body = ctx.req.bodyText;
+      if (body.isEmpty()) {
+        ctx.res.body("error: has no body").send();
+        return;
+      }
+      Message message;
+      try {
+        message = mapper.readValue(body.get(), Message.class);
+      } catch (IOException e) {
+        System.out.println(body.get());
+        ctx.res.body("error: parse json failed").send();
+        e.printStackTrace();
+        return;
+      }
+      if (message.id.equals("none")) {
+        final var id = UUID.randomUUID().toString();
+        message =  new Message(id, message.type, message.content);
+      }
+      final var room = roomManager.getRoom(message.id);
+
+      room.putContextAndMessage(ctx, message);
+    });
+
     s.get("/test", ctx -> {
       queue.add(ctx.res);
-      System.out.println("pushed");
     });
 
     s.get("/test2", ctx -> {
@@ -74,6 +105,7 @@ public class Main {
       ctx.res.body("hoge").send();
     });
 
+    // long polling test
     s.get("/subscribe", ctx -> {
       try {
         Thread.sleep(30000);

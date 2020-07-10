@@ -16,7 +16,6 @@ public class IOUtil {
   }
 
   public static void print(OutputStream out, String line) {
-    System.out.println(line);
     try {
       out.write(line.getBytes(UTF8));
     } catch (IOException e) {
