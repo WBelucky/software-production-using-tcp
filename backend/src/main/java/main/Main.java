@@ -55,7 +55,7 @@ public class Main {
       Message message = new Message(body.get());
       if (message.id.equals("none")) {
         final var id = UUID.randomUUID().toString();
-        message =  new Message(id, message.type, message.content);
+        message =  new Message(id, "enter_room", message.content);
         ctx.res.body(message.toString()).send();
         return;
       }

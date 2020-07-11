@@ -121,7 +121,7 @@ public class Room {
           pTarget.sendMessage("result", "lose");
           return;
         }
-        final var attackResult = ans1.content + "," + Integer.toString(res1.first) + "," + Integer.toString(res1.second);
+        final String attackResult = ans1.content + "," + Integer.toString(res1.first) + "," + Integer.toString(res1.second);
         pAttack.sendMessage("feedback", attackResult);
         pTarget.sendMessage("attacked", attackResult);
         turn++;

@@ -1,23 +1,54 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useState } from "react";
 import styled from "styled-components";
-import { useLongPollingObservable, Message } from "../../hooks/long_polling";
-import { Form, Checkbox, Button } from "semantic-ui-react";
-import { useTextInput, TextInputProps } from "../../hooks/formHooks";
+import {
+  useTextInput,
+  TextInputProps,
+  useNumeronInput,
+  usePassiveData,
+  PassiveData,
+  NumeronInput,
+  MyNameHook,
+  useMyNameHook,
+} from "../../hooks/formHooks";
+import MyName from "./MyName";
+import Num from "./Num";
 
 type ContainerProps = unknown; // {};
 type Props = {
-  v: Message | undefined;
-  type: TextInputProps;
+  type: string;
   content: TextInputProps;
   handleSubmit: () => void;
+  passiveData: PassiveData;
+  numeronInput: NumeronInput;
+  myNameHook: MyNameHook;
 }; // {};
 
-const Component: React.FCX<Props> = ({ className, v, handleSubmit, content, type }) => (
+const Component: React.FCX<Props> = ({
+  className,
+  handleSubmit,
+  content,
+  myNameHook,
+  type,
+  numeronInput,
+  passiveData: { push, opsName, ebs, opsEBs, roomId, result, message },
+}) => (
   <div className={className}>
-    <p>
-      Result = id: {v?.id ?? "undefined"} type: {v?.type ?? "undefined"}, content: {v?.content ?? "undefined"}
-    </p>
-    <Form onSubmit={handleSubmit}>
+    {roomId && <p>ルームID: {roomId}</p>}
+    {result && <p>結果: {result}</p>}
+    {opsName && <p>対戦者: {opsName}</p>}
+    {opsEBs.map((eb, i) => {
+      <p key={i}>
+        {eb[0]} → {eb[1]}EAT, {eb[2]}BITE
+      </p>;
+    })}
+    <Num type={type} numeronInput={numeronInput} />
+    {ebs.map((eb, i) => {
+      <p key={i}>
+        {eb[0]} → {eb[1]}EAT, {eb[2]}BITE
+      </p>;
+    })}
+    <MyName activate={type === "enter_room"} myNameHook={myNameHook} />
+    {/* <Form onSubmit={handleSubmit}>
       <Form.Field>
         <label>type</label>
         <input placeholder="type" {...type} />
@@ -30,7 +61,7 @@ const Component: React.FCX<Props> = ({ className, v, handleSubmit, content, type
         <Checkbox label="I agree to the Terms and Conditions" />
       </Form.Field>
       <Button type="submit">Submit</Button>
-    </Form>
+    </Form> */}
     <p>
       遊び方: 自動的に相手にマッチングします.
       <ol>
@@ -57,7 +88,12 @@ const Component: React.FCX<Props> = ({ className, v, handleSubmit, content, type
 const StyledComponent = styled(Component)``;
 
 const Container: React.FC<ContainerProps> = () => {
-  const [v, push] = useLongPollingObservable();
+  console.log("recalled");
+  const passiveData = usePassiveData();
+  const push = passiveData.push;
+  const numeronInput = useNumeronInput(push);
+  const myNameHook = useMyNameHook(push);
+
   const [type, setType] = useTextInput();
   const [content, setContent] = useTextInput();
   const handleSubmit = useCallback(() => {
@@ -65,7 +101,16 @@ const Container: React.FC<ContainerProps> = () => {
     setType("");
     setContent("");
   }, [content.value, push, setContent, setType, type.value]);
-  return <StyledComponent v={v} type={type} content={content} handleSubmit={handleSubmit} />;
+  return (
+    <StyledComponent
+      type={passiveData.message?.type ?? "undefined"}
+      content={content}
+      myNameHook={myNameHook}
+      handleSubmit={handleSubmit}
+      passiveData={passiveData}
+      numeronInput={numeronInput}
+    />
+  );
 };
 
 export default Container;

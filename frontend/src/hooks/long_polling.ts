@@ -10,6 +10,7 @@ class PollingChannel {
 
   public readonly observable = new Observable((subscriber: Subscriber<Message>) => {
     (async () => {
+      console.log("new");
       while (!this.end) {
         const message: Message = this.channel.shift() ?? { id: this.id ?? "none", type: "resubscribe", content: "" };
 
@@ -17,7 +18,6 @@ class PollingChannel {
           method: "POST",
           body: JSON.stringify(message), // TODO:
         });
-        console.log("sub");
         if (response.status === 502) {
           // 接続タイムアウトエラー
           // 接続が長時間保留されていて、リモートサーバやプロキシがそれを閉じたときに発生する場合があります
@@ -40,7 +40,6 @@ class PollingChannel {
           } else {
             subscriber.next(message);
           }
-          console.log("ok");
         }
         continue;
       }
@@ -54,11 +53,10 @@ class PollingChannel {
 }
 
 export const useLongPollingObservable = (
-  initialValue?: Message | undefined,
   onChange?: (message: Message) => void
 ): [Message | undefined, (type: string, content: string) => void] => {
   const chan = useMemo(() => new PollingChannel(), []);
-  const [value, setValue] = useState(initialValue);
+  const [value, setValue] = useState<Message | undefined>(undefined);
   const handleChange = useCallback(
     (m: Message) => {
       setValue(m);
@@ -73,6 +71,7 @@ export const useLongPollingObservable = (
   const push = useCallback(
     (type: string, content: string) => {
       chan.push(type, content);
+      console.log(type, content);
     },
     [chan]
   );
