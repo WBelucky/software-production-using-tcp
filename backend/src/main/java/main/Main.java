@@ -32,7 +32,13 @@ class Hoge {
 
 public class Main {
   public static void main(final String[] args) {
-    final var port = Integer.parseInt(args.length > 1  ? args[1] : "8080");
+    final int port;
+    final var env = System.getenv("PORT");
+    if(env != null) {
+      port = Integer.parseInt(env);
+    } else {
+      port = 8080;
+    }
     final var roomManager = new RoomManager();
 
     final var s = new HttpServer();
