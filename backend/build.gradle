@@ -1,13 +1,27 @@
 apply plugin: 'java'
 apply plugin: 'application'
+apply plugin: 'spring-boot'
+
+buildscript {
+  repositories {
+    mavenCentral()
+  }
+  dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:1.1.9.RELEASE")
+  }
+}
+
+jar {
+  manifest {
+    attributes 'Main-Class': 'main.Main'
+  }
+  jar.into('lib') {
+      from configurations.runtime
+  }
+}
 
 repositories {
     mavenCentral()
-}
-
-dependencies {
-    compile 'com.fasterxml.jackson.core:jackson-databind:2.3.4'
-    implementation "io.reactivex.rxjava3:rxjava:3.0.4"
 }
 
 mainClassName = 'main.Main'

@@ -10,9 +10,6 @@ import myhttp.ContentType;
 import myhttp.HttpResponse;
 import myhttp.HttpServer;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import app.Message;
 import app.RoomManager;
 
@@ -35,20 +32,13 @@ class Hoge {
 
 public class Main {
   public static void main(final String[] args) {
-
+    final var port = Integer.parseInt(args.length > 1  ? args[1] : "8080");
     final var roomManager = new RoomManager();
 
     final var s = new HttpServer();
-    final String json = "{\"id\":20, \"name\":\"HOGE\"}";
     final var queue = new ArrayBlockingQueue<HttpResponse>(100);
 
     // json test
-    final ObjectMapper mapper = new ObjectMapper();
-    try {
-      final Hoge hoge = mapper.readValue(json, Hoge.class);
-    } catch (final IOException e) {
-      e.printStackTrace();
-    }
 
     s.post("/api/game", ctx -> {
       final var body = ctx.req.bodyText;
@@ -56,25 +46,11 @@ public class Main {
         ctx.res.body("error: has no body").send();
         return;
       }
-      Message message;
-      try {
-        message = mapper.readValue(body.get(), Message.class);
-      } catch (IOException e) {
-        System.out.println(body.get());
-        ctx.res.body("error: parse json failed").send();
-        e.printStackTrace();
-        return;
-      }
+      Message message = new Message(body.get());
       if (message.id.equals("none")) {
         final var id = UUID.randomUUID().toString();
         message =  new Message(id, message.type, message.content);
-        try {
-          final var j = mapper.writeValueAsString(message);
-          ctx.res.body(j).send();
-        } catch (JsonProcessingException e) {
-          // TODO Auto-generated catch block
-          e.printStackTrace();
-        }
+        ctx.res.body(message.toString()).send();
         return;
       }
       final var room = roomManager.getRoom(message.id);
@@ -125,6 +101,6 @@ public class Main {
       ctx.res.contentType(ContentType.TextPlain).body(new Date().toString()).send();
     });
 
-    s.listenAndServe(8080);
+    s.listenAndServe(port);
   }
 }

@@ -1,15 +1,10 @@
 package app;
 
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.ArrayBlockingQueue;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import io.reactivex.rxjava3.functions.Predicate;
 import myhttp.Context;
 import util.Pair;
 
@@ -84,8 +79,6 @@ public class Player {
   public Optional<String> name = Optional.empty();
   private final ArrayBlockingQueue<Pair<Context, Message>> queue = new ArrayBlockingQueue<>(100);
 
-  private final ObjectMapper mapper = new ObjectMapper();
-
   public Player(String id) {
     this.id = id;
   }
@@ -118,17 +111,11 @@ public class Player {
   }
 
   public boolean sendMessageWhenHasContext(final String type, final String content) {
-    try {
-      final var j = this.mapper.writeValueAsString(new Message(this.id, type, content));
-      final var c = this.relaseContext();
-      if (c.isEmpty()) {
-        return false;
-      }
-      c.get().res.body(j).send();
-    } catch (JsonProcessingException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
+    final var c = this.relaseContext();
+    if (c.isEmpty()) {
+      return false;
     }
+    c.get().res.body(new Message(this.id, type, content).toString()).send();
     return true;
   }
 
@@ -180,7 +167,7 @@ public class Player {
     }
   }
 
-  public Message waitInputWithFilter(final Predicate<Message> predicate) {
+  public Message waitInputWithFilter(final java.util.function.Predicate<Message> predicate) {
     while (true) {
       final var m = waitInput();
       try {
